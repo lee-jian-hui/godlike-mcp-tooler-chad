@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+RUN useradd -m -u 1000 opencode && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    opencode \
+    sqlite3
+
+RUN mkdir -p /workspace /app/data /tmp && \
+    chown -R opencode:opencode /workspace /app/data /tmp
+
+USER opencode
+
+WORKDIR /workspace
+
+ENV WORKSPACE=/workspace \
+    DB_PATH=/app/data/database.sqlite \
+    PATH=/home/opencode/.local/bin:$PATH
+
+ENTRYPOINT ["opencode"]
