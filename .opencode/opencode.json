@@ -1,0 +1,48 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5-20251101",
+  "permission": {
+    "task": {
+      "*": "allow"
+    },
+    "bash": {
+      "workspace/*": "allow",
+      "*": "ask"
+    },
+    "write": {
+      "workspace/*": "allow",
+      "*": "deny"
+    },
+    "read": {
+      "workspace/**": "allow",
+      ".opencode/**": "allow"
+    }
+  },
+  "agent": {
+    "coder": {
+      "description": "Primary coding agent",
+      "mode": "primary",
+      "model": "anthropic/claude-sonnet-4-5-20251101",
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "task": true
+      }
+    },
+    "judge": {
+      "description": "Safety judge - validates actions before execution",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-5-20251101",
+      "task_budget": 20,
+      "tools": {
+        "read": true,
+        "write": false,
+        "edit": false,
+        "bash": false,
+        "task": false
+      }
+    }
+  }
+}
