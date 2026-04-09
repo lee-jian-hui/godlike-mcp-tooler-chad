@@ -32,10 +32,12 @@
       }
     },
     "judge": {
-      "description": "Safety judge - validates actions before execution",
+      "description": "Safety judge - validates actions before execution (uses paranoid model)",
       "mode": "subagent",
       "model": "anthropic/claude-sonnet-4-5-20251101",
       "task_budget": 20,
+      "fallback_models": ["anthropic/claude-haiku-4-5-20251101"],
+      "temperature": 0.1,
       "tools": {
         "read": true,
         "write": false,

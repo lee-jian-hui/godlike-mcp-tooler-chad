@@ -9,24 +9,24 @@
 
 ## Phase 2: Subagent Architecture - Judge Pattern (Priority: High)
 
-- [ ] Create `.opencode/` directory structure
-- [ ] Define main agent (executor) with full tools
-- [ ] Define judge subagent for action validation
-- [ ] Configure in `opencode.json`
-- [ ] Implement approval/denial workflow
+- [x] Create `.opencode/` directory structure
+- [x] Define main agent (executor) with full tools
+- [x] Define judge subagent for action validation
+- [x] Configure in `opencode.json`
+- [x] Implement approval/denial workflow
 
 ## Phase 3: Judge Subagent Implementation (Priority: High)
 
-- [ ] Create judge prompt with safety rules
-- [ ] Define blocked actions (destructive, privileged)
-- [ ] Add requires-approval action patterns:
+- [x] Create judge prompt with safety rules
+- [x] Define blocked actions (destructive, privileged)
+- [x] Add requires-approval action patterns:
   - `kubectl delete *`
   - `docker rmi`, `docker stop`
   - `helm uninstall`
   - `DROP DATABASE`
   - Network to internal IPs
-- [ ] Configure task_budget for judge calls
-- [ ] Add model routing (use paranoid model for judge)
+- [x] Configure task_budget for judge calls
+- [x] Add model routing (use paranoid model for judge)
 
 ## Phase 4: Local K8s Integration (Priority: High)
 

@@ -162,3 +162,39 @@ docker exec opencode-agent opencode --continuous
 | `MAX_ITERATIONS` | Max agent iterations | 50 |
 | `TIMEOUT_SECONDS` | Task timeout | 1800 |
 
+## Secrets Management
+
+### ⚠️ NEVER read from .env files
+
+Secrets should NEVER be read from `.env` files. Use these methods instead:
+
+1. **Kubernetes Secrets** - For K8s deployments
+2. **Environment variables** - Set by the orchestrator (not from .env)
+3. **External secrets operators** - For enterprise setups
+
+### Kubernetes Secret Injection
+
+```yaml
+# k8s/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openclaw-secrets
+  namespace: openclaw
+type: Opaque
+stringData:
+  discord-bot-token: ${DISCORD_BOT_TOKEN}
+  discord-application-id: ${DISCORD_APPLICATION_ID}
+```
+
+### Service-Specific .env Files
+
+| Service | Secrets File | Injected Via |
+|---------|--------------|--------------|
+| OpenClaw Gateway | `secrets/openclaw.env` | K8s Secret → Env var |
+| OpenCode (coder) | `secrets/opencode-coder.env` | ConfigMap |
+| OpenCode (judge) | `secrets/opencode-judge.env` | ConfigMap |
+| Squid Proxy | `secrets/squid.env` | ConfigMap |
+
+Each service reads only its own environment file injected by Kubernetes.
+
