@@ -1,8 +1,10 @@
-# OpenClaw Integration Plan
+# OpenClaw Integration Plan (Docker-Based)
 
 ## Overview
 
-Run OpenClaw (orchestration) + OpenCode (inference) in a sandboxed local Kubernetes cluster with Discord as the messaging interface.
+Run OpenClaw (orchestration) + Podman (infra container spawning) in a sandboxed Docker container with Discord as the messaging interface.
+
+**Updated**: Switched from Kubernetes to Docker for simpler local development.
 
 ---
 
@@ -10,31 +12,30 @@ Run OpenClaw (orchestration) + OpenCode (inference) in a sandboxed local Kuberne
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     Local Kubernetes (minikube)                     │
+│                     Docker Container (Sandboxed)                    │
 │                                                                      │
 │  ┌────────────────────────────────────────────────────────────────┐ │
-│  │ OpenClaw Pod                                                  │ │
+│  │  openclaw-container                                           │ │
 │  │  ┌─────────────────┐    ┌─────────────────────────────────┐  │ │
-│  │  │ OpenClaw        │    │     opencode/                     │  │ │
-│  │  │ Gateway         │───▶│  ├─ coder.md (main agent)        │  │ │
-│  │  │ (Discord bot)   │    │  └─ subagents/judge.md           │  │ │
+│  │  │ OpenClaw        │    │     .opencode/                  │  │ │
+│  │  │ Gateway         │───▶│  ├─ agents/coder.md            │  │ │
+│  │  │ (Discord bot)   │    │  └─ subagents/judge.md        │  │ │
+│  │  └─────────────────┘    └─────────────────────────────────┘  │ │
+│  │          │                                                     │ │
+│  │          ▼                                                     │ │
+│  │  ┌─────────────────┐    ┌─────────────────────────────────┐  │ │
+│  │  │ Podman          │    │     /workspace                   │  │ │
+│  │  │ (infra runner)  │    │     (code from git)              │  │ │
 │  │  └─────────────────┘    └─────────────────────────────────┘  │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 │                              │                                       │
 │                              ▼                                       │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │ Workspace Volume (HostPath)                                     │ │
-│  │  openclaw-assets/workspace                                     │ │
-│  └────────────────────────────────────────────────────────────────┘ │
-│                              │                                       │
-│                              ▼                                       │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │ Proxy Pod (Squid)                                              │ │
-│  │  Network filtering                                            │ │
-│  └────────────────────────────────────────────────────────────────┘ │
+│                     Docker Volume (ephemeral)                       │
 └─────────────────────────────────────────────────────────────────────┘
-         │
-         Discord User
+          │
+          │ Network
+          ▼
+     Discord User
 ```
 
 ---
@@ -43,11 +44,11 @@ Run OpenClaw (orchestration) + OpenCode (inference) in a sandboxed local Kuberne
 
 | Component | Role |
 |-----------|------|
+| **Docker Container** | Sandboxed environment, not root |
 | **OpenClaw Gateway** | Discord bot, message handling, session management |
-| **OpenCode (coder)** | Code inference, tool execution |
+| **Podman** | Run infra containers (Airflow, Kafka) inside container |
 | **Judge Subagent** | Validates dangerous actions before execution |
-| **Squid Proxy** | Network filtering for safety |
-| **Workspace PV** | Persistent storage for code files |
+| **/workspace** | Ephemeral storage, code from git |
 
 ---
 
@@ -55,32 +56,28 @@ Run OpenClaw (orchestration) + OpenCode (inference) in a sandboxed local Kuberne
 
 ### Layer 1: Container Security
 ```yaml
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop: ["ALL"]
+# docker-compose.yml
+user: "node"  # Non-root user (UID 1000)
+read_only: false  # Workspace needs to be writable
 ```
 
-### Layer 2: Kubernetes Pod Security
+### Layer 2: Resource Limits
 ```yaml
-securityContext:
-  runAsNonRoot: true
-  fsGroup: 1000
-  seccompProfile:
-    type: RuntimeDefault
+deploy:
+  resources:
+    limits:
+      memory: 4G
+      pids: 100
 ```
 
-### Layer 3: Network Policy
-- Egress only through Squid proxy (port 3128)
-- Block internal IPs (10.x, 172.16.x, 192.168.x)
-- Allow only HTTPS (443) for external API calls
+### Layer 3: No Host Access
+- No Docker socket mounted from host
+- No HostPath volumes (using Docker volumes)
+- Container runs isolated
 
 ### Layer 4: Judge Subagent
 - All destructive commands validated before execution
-- Rules defined in `configs/.opencode/subagents/judge.md`
+- Rules defined in `.opencode/subagents/judge.md`
 
 ---
 
@@ -89,25 +86,36 @@ securityContext:
 ### Step 1: Create Discord Bot
 See: `discord/bot-setup.md`
 
-### Step 2: Set Up Minikube
+### Step 2: Configure Environment
 ```bash
-# Start minikube with sufficient resources
-minikube start --cpus=4 --memory=8g --disk-size=20g
-
-# Enable required addons
-minikube addons enable ingress
-minikube addons enable metrics-server
+# Copy and edit .env file
+cp .env.example .env
+# Add your Discord bot token
 ```
 
-### Step 3: Deploy OpenClaw
+### Step 3: Build & Run
 ```bash
-kubectl apply -f k8s/
+# Build the image
+docker build -t openclaw:local .
+
+# Run the container
+docker run -d --name openclaw openclaw:local
+
+# Or with docker-compose
+docker-compose up -d
 ```
 
-### Step 4: Configure Discord
-1. Invite bot to server
-2. Bot joins designated channel
-3. Send `/opencode` to start session
+### Step 4: Verify
+```bash
+# Check container is running
+docker ps
+
+# Check OpenClaw is installed
+docker exec openclaw openclaw --version
+
+# Check Podman is available
+docker exec openclaw podman --version
+```
 
 ---
 
@@ -116,46 +124,48 @@ kubectl apply -f k8s/
 ```
 .
 ├── openclaw-integration-plan.md    # This file
-├── k8s/
-│   ├── openclaw-deployment.yaml    # Main deployment
-│   ├── openclaw-service.yaml       # ClusterIP service
-│   ├── workspace-pv.yaml           # HostPath volume
-│   ├── configmap.yaml              # Config files
-│   ├── network-policy.yaml         # Network restrictions
-│   └── squid-deployment.yaml       # Proxy
-├── configs/
-│   ├── openclaw.json               # OpenClaw config (Discord + ACP)
-│   ├── opencode-coder.json         # Coder agent config
-│   ├── opencode-judge.json        # Judge agent config
-│   └── squid.conf                  # Proxy config
-├── discord/
-│   └── bot-setup.md                # Discord bot setup guide
-└── openclaw-assets/
-    └── workspace/                  # Bind mount for code
+├── Dockerfile                       # Container image definition
+├── docker-compose.yml               # Container orchestration
+├── .env.example                     # Environment template
+├── .env                             # Your secrets (gitignored)
+├── .dockerignore                    # Build exclusions
+├── scripts/
+│   └── entrypoint.sh               # Startup script (git clone)
+├── .opencode/
+│   ├── opencode.json               # OpenCode config
+│   ├── agents/
+│   │   └── coder.md                # Coder agent prompt
+│   └── subagents/
+│       └── judge.md                # Judge subagent safety rules
+└── discord/
+    └── bot-setup.md                # Discord bot setup guide
 ```
 
 ---
 
 ## Configuration Details
 
-### OpenClaw (configs/openclaw.json)
-- Discord bot token from environment
-- ACP enabled for OpenCode integration
-- Model: configured via OpenCode
+### Environment Variables (.env)
+```
+DISCORD_BOT_TOKEN=your_bot_token
+DISCORD_APPLICATION_ID=your_app_id
+OPENCLAW_GATEWAY_TOKEN=secret-token
+OPENCODE_MODEL=opencode/minimax-m2.5-free
 
-### OpenCode Coder (configs/opencode-coder.json)
+# Optional: Git clone at startup
+GIT_REPO_URL=https://github.com/username/repo.git
+GIT_USERNAME=your-username
+GIT_EMAIL=your-email@example.com
+```
+
+### OpenCode Config (`.opencode/opencode.json`)
 - Model: `opencode/minimax-m2.5-free`
 - Tools: read, write, edit, bash, task
 - Permissions scoped to workspace
 
-### OpenCode Judge (configs/opencode-judge.json)
-- Model: `opencode/minimax-m2.5-free`
-- Tools: read-only (no bash, write, edit)
-- Safety rules from judge.md
-
 ### Judge Safety Rules
-- **ALWAYS DENY**: Internal IPs, cloud metadata, destructive commands
-- **REQUIRES APPROVAL**: kubectl delete, docker rm, helm uninstall, DROP DATABASE
+- **ALWAYS DENY**: Internal IPs (10.x, 172.16.x, 192.168.x), cloud metadata (169.254.169.254)
+- **REQUIRES APPROVAL**: podman delete, rm -rf, DROP DATABASE
 
 ---
 
@@ -166,68 +176,90 @@ kubectl apply -f k8s/
 2. Set channel permissions:
    - Bot: Read Messages, Send Messages
    - Users: Read Messages (optional)
-3. (Optional) Create separate channels:
-   - `#opencode-logs` - For execution logs
-   - `#opencode-sandbox` - For isolated testing
 
 ### Bot Commands
 - `/opencode` - Start new session
 - `/opencode task <description>` - Run task
 - `/opencode stop` - End session
-- `/opencode status` - Check status
 
 ---
 
-## Storage
+## Podman (Infra Container Spawning)
 
-### Workspace Location
+The container has Podman installed to spawn infra containers:
+
+```bash
+# Inside the container:
+podman run -d airflow
+podman run -d kafka
+podman ps  # List running containers
 ```
-openclaw-assets/
-├── workspace/           # Main code workspace
-│   ├── src/
-│   ├── tests/
-│   └── README.md
-├── data/                # OpenClaw data (SQLite)
-│   ├── database.sqlite
-│   └── sessions/
-└── cache/               # Cache files
+
+This is **Docker-in-Docker without privileged mode** using Podman's rootless capabilities.
+
+---
+
+## Quick Start
+
+```bash
+# 1. Setup
+cp .env.example .env
+# Edit .env with your Discord bot token
+
+# 2. Build
+docker build -t openclaw:local .
+
+# 3. Run
+docker run -d --name openclaw \
+  --env-file .env \
+  openclaw:local
+
+# 4. Check logs
+docker logs -f openclaw
 ```
 
 ---
 
 ## Verification Checklist
 
-- [ ] Discord bot created and token saved
-- [ ] Minikube started with 4 CPU, 8GB RAM
-- [ ] OpenClaw pod running
-- [ ] Squid proxy pod running
-- [ ] Network policy applied
-- [ ] Workspace volume mounted
-- [ ] Bot responds to /opencode command
+- [x] Dockerfile builds successfully
+- [x] OpenClaw installed in container
+- [x] Podman installed in container
+- [ ] Container runs with restart policy
+- [ ] Discord bot connects
+- [ ] Git clone works at startup
 - [ ] Judge validation works for dangerous commands
-- [ ] Files persist after pod restart
 
 ---
 
 ## Troubleshooting
 
-### Pod not starting
+### Container not starting
 ```bash
-kubectl describe pod openclaw-0
-kubectl logs openclaw-0
+docker logs openclaw
+docker exec openclaw sh
 ```
 
-### Bot not responding
+### Discord bot not connecting
 ```bash
-kubectl logs openclaw-0 | grep -i discord
+docker exec openclaw openclaw gateway start
 ```
 
-### Network issues
+### Podman not working inside container
 ```bash
-kubectl exec -it squid-0 -- tail -f /var/log/squid/access.log
+docker exec openclaw podman info
 ```
 
-### Workspace not persisting
-```bash
-kubectl describe pv openclaw-workspace
-```
+---
+
+## Why Docker Instead of Kubernetes
+
+| Aspect | Docker | Kubernetes |
+|--------|--------|------------|
+| Complexity | Low | High |
+| Resources | Lightweight | Heavy (VM) |
+| Setup time | Minutes | Hours |
+| Restart handling | docker-compose | K8s native |
+| Host coupling | Low (container only) | High (minikube on host) |
+
+For local development, Docker is simpler and achieves the same sandboxing goals.
