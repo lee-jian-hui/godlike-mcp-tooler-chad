@@ -33,9 +33,18 @@ if [ -d "/workspace/.opencode" ]; then
     echo "Using .opencode config from workspace..."
 fi
 
-echo "=== Startup Complete ==="
-echo "To start OpenClaw: openclaw gateway start"
-echo "To run interactively: bash"
+echo "=== Starting OpenClaw Gateway ==="
 
-# Keep container running if no command
-exec "$@"
+# Start OpenClaw gateway in background with --allow-unconfigured
+openclaw gateway --allow-unconfigured &
+
+# Wait for gateway to start
+sleep 5
+
+echo "=== OpenClaw Gateway Started ==="
+echo "Container will keep running..."
+echo "Gateway: http://localhost:18789"
+echo "To interact: docker exec -it openclaw bash"
+
+# Keep container alive indefinitely
+tail -f /dev/null
