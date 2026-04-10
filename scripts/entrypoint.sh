@@ -18,10 +18,17 @@ if [ -n "$GIT_REPO_URL" ]; then
     # Check if already a git repo
     if [ -d ".git" ]; then
         echo "Git repo already exists, pulling latest..."
-        git pull origin main || git pull origin master || true
+        git fetch origin
+        git reset --hard origin/main || git reset --hard origin/master || true
     else
-        echo "Cloning $GIT_REPO_URL..."
-        git clone "$GIT_REPO_URL" .
+        # Remove existing non-git files if any (to allow clean clone)
+        # Only remove if it's a fresh workspace (no important files)
+        if [ -z "$(ls -A /workspace 2>/dev/null | grep -v '^configs$\|^.opencode$|^scripts$')" ]; then
+            echo "Cloning $GIT_REPO_URL..."
+            git clone "$GIT_REPO_URL" .
+        else
+            echo "Workspace already has files, skipping clone..."
+        fi
     fi
     
     # Set git to auto-commit

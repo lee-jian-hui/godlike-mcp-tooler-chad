@@ -1,23 +1,4 @@
 {
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "opencode/minimax-m2.5-free",
-        "fallbacks": ["opencode-go/minimax-m2.5"]
-      },
-      "systemPromptFile": ".opencode/agents/agent.md"
-    },
-    "list": [
-      {
-        "id": "agent",
-        "systemPromptFile": ".opencode/agents/agent.md"
-      },
-      {
-        "id": "coder",
-        "systemPromptFile": ".opencode/agents/coder.md"
-      }
-    ]
-  },
   "channels": {
     "discord": {
       "enabled": true,
@@ -33,12 +14,6 @@
         }
       }
     }
-  },
-  "gateway": {
-    "controlUi": {
-      "allowedOrigins": ["http://localhost:18789", "http://127.0.0.1:18789"]
-    },
-    "token": "opencode-agent-secret-token"
   },
   "plugins": {
     "entries": {
