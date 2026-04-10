@@ -25,6 +25,9 @@ WORKDIR /workspace
 COPY --chown=node:node scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy OpenCode configuration
+COPY --chown=node:node .opencode/ /workspace/.opencode/
+
 # Install OpenClaw globally (as root, then switch to node user)
 RUN npm install -g openclaw
 
