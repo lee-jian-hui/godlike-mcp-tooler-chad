@@ -11,25 +11,25 @@ RUN apt-get update && apt-get install -y \
     podman \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN useradd -m -u 1000 openclaw
+# Note: node:22-bookworm already has 'node' user with UID 1000
+# We use that user instead of creating a new one
 
 # Create workspace directory
 RUN mkdir -p /workspace /data && \
-    chown -R openclaw:openclaw /workspace /data
+    chown -R node:node /workspace /data
 
 # Set working directory
 WORKDIR /workspace
 
 # Copy entrypoint script
-COPY --chown=openclaw:openclaw scripts/entrypoint.sh /entrypoint.sh
+COPY --chown=node:node scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Switch to non-root user
-USER openclaw
-
-# Install OpenClaw globally
+# Install OpenClaw globally (as root, then switch to node user)
 RUN npm install -g openclaw
+
+# Switch to non-root user after npm install
+USER node
 
 # Default command
 ENTRYPOINT ["/entrypoint.sh"]
