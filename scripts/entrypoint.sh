@@ -33,6 +33,22 @@ if [ -d "/workspace/.opencode" ]; then
     echo "Using .opencode config from workspace..."
 fi
 
+# Write Discord config from environment variables
+if [ -n "$DISCORD_BOT_TOKEN" ]; then
+    echo "Configuring Discord channel..."
+    mkdir -p /home/node/.openclaw
+    cat > /home/node/.openclaw/openclaw.json << EOF
+{
+  "channels": {
+    "discord": {
+      "enabled": true
+    }
+  }
+}
+EOF
+    echo "Discord configured from env vars"
+fi
+
 echo "=== Starting OpenClaw Gateway ==="
 
 # Start OpenClaw gateway in background with --allow-unconfigured
