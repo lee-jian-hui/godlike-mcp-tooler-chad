@@ -1,54 +1,33 @@
 version: '3.8'
 
 services:
-  proxy:
-    image: sameersbn/squid:3.5.27-2
-    container_name: opencode-proxy
-    ports:
-      - "3128:3128"
-    volumes:
-      - squid_cache:/var/spool/squid
-    networks:
-      - opencode-net
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openclaw:local
+    container_name: openclaw
     restart: unless-stopped
-
-  agent:
-    image: opencode-agent:latest
-    container_name: opencode-agent
-    depends_on:
-      - proxy
-    security_options:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    pids_limit: 100
-    mem_limit: 1g
-    cpus: 2
-    user: "1000:1000"
+    env_file:
+      - .env
     volumes:
-      - ./workspace:/workspace
-      - opencode_data:/app/data
-      - /tmp:/tmp
-    environment:
-      - WORKSPACE=/workspace
-      - DB_PATH=/app/data/database.sqlite
-      - HTTP_PROXY=http://proxy:3128
-      - HTTPS_PROXY=http://proxy:3128
-      - ALLOWED_DOMAINS=api.duckduckgo.com,serpapi.com,exa.ai
-    networks:
-      - opencode-net
-    read_only: true
-    tmpfs:
-      - /tmp:exec,size=100M
-    restart: unless-stopped
-
-networks:
-  opencode-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
+      - openclaw-data:/data
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          pids: 100
+        reservations:
+          memory: 2G
+          cpus: '1.0'
 
 volumes:
-  opencode_data:
-  squid_cache:
+  openclaw-data:
+    driver: local
