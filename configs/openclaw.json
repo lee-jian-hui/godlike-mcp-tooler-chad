@@ -4,8 +4,19 @@
       "model": {
         "primary": "opencode/minimax-m2.5-free",
         "fallbacks": ["opencode-go/minimax-m2.5"]
+      },
+      "systemPromptFile": ".opencode/agents/agent.md"
+    },
+    "list": [
+      {
+        "id": "agent",
+        "systemPromptFile": ".opencode/agents/agent.md"
+      },
+      {
+        "id": "coder",
+        "systemPromptFile": ".opencode/agents/coder.md"
       }
-    }
+    ]
   },
   "channels": {
     "discord": {

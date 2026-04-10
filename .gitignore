@@ -3,3 +3,9 @@
 .env.local
 *.pem
 *.key
+
+# Agent workspace (cloned at runtime)
+workspace/DIRECTIVE.md
+workspace/MEMORY.md
+workspace/todos/
+workspace/memory/

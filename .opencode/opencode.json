@@ -22,9 +22,35 @@
     }
   },
   "agent": {
-    "coder": {
-      "description": "Primary coding agent with safety validation",
+    "default": {
+      "description": "Default fallback agent",
+      "mode": "fallback",
+      "model": "opencode/minimax-m2.5-free",
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "task": true
+      }
+    },
+    "agent": {
+      "description": "Primary autonomous agent - reads DIRECTIVE.md and manages tasks",
       "mode": "primary",
+      "systemPromptFile": ".opencode/agents/agent.md",
+      "model": "opencode/minimax-m2.5-free",
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "task": true
+      }
+    },
+    "coder": {
+      "description": "Specialized coding agent - builds on agent.md for coding tasks",
+      "mode": "subagent",
+      "systemPromptFile": ".opencode/agents/coder.md",
       "model": "opencode/minimax-m2.5-free",
       "tools": {
         "read": true,
@@ -37,9 +63,23 @@
     "judge": {
       "description": "Safety judge - validates actions before execution",
       "mode": "subagent",
+      "systemPromptFile": ".opencode/subagents/judge.md",
       "model": "opencode/minimax-m2.5-free",
       "task_budget": 20,
       "temperature": 0.1,
+      "tools": {
+        "read": true,
+        "write": false,
+        "edit": false,
+        "bash": false,
+        "task": false
+      }
+    },
+    "code-reviewer": {
+      "description": "Security code reviewer - analyzes code for security vulnerabilities",
+      "mode": "subagent",
+      "systemPromptFile": ".opencode/subagents/code-reviewer.md",
+      "model": "opencode/minimax-m2.5-free",
       "tools": {
         "read": true,
         "write": false,

@@ -33,6 +33,22 @@ if [ -d "/workspace/.opencode" ]; then
     echo "Using .opencode config from workspace..."
 fi
 
+# Copy workspace templates if they don't exist
+echo "Setting up workspace directories..."
+mkdir -p /workspace/todos /workspace/memory /workspace/skills /workspace/mcp-tools
+
+# Copy DIRECTIVE.md template if not exists
+if [ ! -f "/workspace/DIRECTIVE.md" ] && [ -f "/workspace/configs/DIRECTIVE.md" ]; then
+    echo "Copying DIRECTIVE.md template..."
+    cp /workspace/configs/DIRECTIVE.md /workspace/DIRECTIVE.md
+fi
+
+# Copy MEMORY.md template if not exists
+if [ ! -f "/workspace/MEMORY.md" ] && [ -f "/workspace/configs/MEMORY.md" ]; then
+    echo "Copying MEMORY.md template..."
+    cp /workspace/configs/MEMORY.md /workspace/MEMORY.md
+fi
+
 # Copy OpenClaw config
 if [ -f "/workspace/configs/openclaw.json" ]; then
     echo "Using OpenClaw config from workspace..."
