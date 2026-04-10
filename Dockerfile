@@ -32,6 +32,7 @@ COPY --chown=node:node .opencode/ /workspace/.opencode/
 COPY --chown=node:node configs/ /workspace/configs/
 
 # Install OpenClaw globally (as root, then switch to node user)
+# OpenCode is bundled with OpenClaw's ACP
 RUN npm install -g openclaw
 
 # Switch to non-root user after npm install

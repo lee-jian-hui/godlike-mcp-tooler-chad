@@ -1,4 +1,58 @@
 {
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "opencode/minimax-m2.5-free"
+      }
+    }
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "groupPolicy": "allowlist",
+      "guilds": {
+        "*": {
+          "requireMention": false,
+          "channels": {
+            "*": {
+              "enabled": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "gateway": {
+    "controlUi": {
+      "allowedOrigins": ["http://localhost:18789", "http://127.0.0.1:18789"]
+    },
+    "token": "opencode-agent-secret-token"
+  },
+  "models": {
+    "providers": {
+      "opencode": {
+        "options": {}
+      },
+      "minimax": {
+        "options": {
+          "apiKey": ""
+        }
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "opencode": {
+        "enabled": true
+      },
+      "minimax": {
+        "enabled": true
+      }
+    }
+  }
+}
+    }
+  },
   "channels": {
     "discord": {
       "enabled": true,
