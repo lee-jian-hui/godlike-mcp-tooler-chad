@@ -1,9 +1,19 @@
 # High-Level Directive
 
-Build Malaysia property price data pipeline:
-1. Crawl property market data from Malaysia sources
-2. Store in PostgreSQL database  
-3. Expose as MCP tools/servers for agent use
-4. Generate visualizations and reports
+Build a data pipeline for Malaysia property prices.
 
-Start with Phase 1: Infrastructure setup (PostgreSQL, data schema, storage)disc
+## Goal
+Collect, store, and expose Malaysia property market data for analysis and agent use.
+
+## Your Task
+1. Research Malaysia property data sources
+2. Design and implement the data pipeline
+3. Expose data as MCP tools for other agents
+4. Create visualizations and reports
+
+## Guidelines
+- Choose appropriate technologies based on your research
+- Start simple, iterate
+- Document your decisions in MEMORY.md
+- Create todo files for each milestone
+- Report blockers immediately
