@@ -77,7 +77,4 @@ If you accidentally see or log a secret:
 
 ## Reference
 
-See also:
-- `skills/read_secrets.md` - For viewing masked secrets
-- `rules/git.md` - For commit rules
-- `rules/review.md` - For code review rules
+**Always use `skills/read_secrets.md`** - For safe env var checking (never read .env files directly)
