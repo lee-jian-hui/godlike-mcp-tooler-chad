@@ -39,7 +39,7 @@ if [ -n "$GIT_WORKSPACE_URL" ]; then
         
         # Clean workspace for clone
         cd /workspace
-        rm -rf * 2>/dev/null || true
+        rm -rf * .git 2>/dev/null || true
         
 # Clone workspace repo with auth
         echo "Cloning $GIT_WORKSPACE_URL..."
