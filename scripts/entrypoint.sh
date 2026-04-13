@@ -31,14 +31,22 @@ if [ -n "$GIT_WORKSPACE_URL" ]; then
         git fetch origin
         git reset --hard origin/main || true
     else
-        # Clean workspace for fresh clone
-        cd /workspace
-        rm -rf * .git 2>/dev/null || true
+        # Clean workspace for fresh clone (must be empty)
+        echo "Cleaning workspace for clone..."
+        rm -rf /workspace/* /workspace/.* 2>/dev/null || true
         
         # Clone workspace repo with auth
         echo "Cloning $GIT_WORKSPACE_URL..."
         if [ -n "$GIT_WORKSPACE_TOKEN" ]; then
-            git clone "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@$(echo $GIT_WORKSPACE_URL | sed 's|https://||')" . 2>/dev/null
+            git clone "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@github.com/lee-jian-hui/open-prop-market-claw" . 2>&1 || echo "Clone failed: $?"
+        else
+            echo "Warning: No workspace token, skipping clone"
+        fi
+        
+        # If clone failed, restore agent repo files
+        if [ ! -d "/workspace/.git" ]; then
+            echo "Restoring agent repo files..."
+            cp -r /tmp/openclaw-configs/* /workspace/ 2>/dev/null || true
         fi
     fi
     
