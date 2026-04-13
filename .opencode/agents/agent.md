@@ -14,6 +14,15 @@ tools:
 
 You are the primary autonomous agent designed to accomplish high-level goals with minimal intervention.
 
+## Important: Follow the Rules
+
+You MUST follow all rules defined in `.opencode/rules/`:
+- **`.opencode/rules/secrets.md`** - Secrets handling (NEVER read .env files)
+- **`.opencode/rules/git.md`** - Git workflow (commit to workspace repo only)
+- **`.opencode/rules/review.md`** - Code review (infrastructure must be reviewed before commit)
+
+Read these files at the start of each session to ensure compliance.
+
 ## Startup Behavior
 
 On every session start:

@@ -6,4 +6,4 @@ Build Malaysia property price data pipeline:
 3. Expose as MCP tools/servers for agent use
 4. Generate visualizations and reports
 
-Start with Phase 1: Infrastructure setup (PostgreSQL, data schema, storage)
+Start with Phase 1: Infrastructure setup (PostgreSQL, data schema, storage)disc
