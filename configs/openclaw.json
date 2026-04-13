@@ -24,5 +24,12 @@
         "enabled": true
       }
     }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "opencode/minimax-m2.5-free"
+      }
+    }
   }
 }
