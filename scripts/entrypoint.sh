@@ -24,19 +24,37 @@ cd /workspace
 if [ -n "$GIT_WORKSPACE_URL" ]; then
     echo "Cloning workspace repository..."
     
-    # Check if already a git repo (cloned previously)
-    if [ -d ".git" ]; then
+    # Check if workspace already has a git repo (from previous clone)
+    if [ -d "/workspace/.git" ]; then
         echo "Workspace repo exists, pulling latest..."
+        cd /workspace
         git fetch origin
         git reset --hard origin/main || true
     else
-        # Clean workspace directory except for OpenClaw system files
-        # Keep: configs/ .opencode/ scripts/ (from agent repo build)
-        ls -A /workspace | grep -v "^configs$" | grep -v "^\.opencode$" | grep -v "^scripts$" | xargs -r rm -rf 2>/dev/null || true
+        # Workspace has files from Docker build (configs, .opencode)
+        # Move them to temp location
+        mkdir -p /tmp/openclaw-configs
+        [ -d /workspace/configs ] && mv /workspace/configs /tmp/openclaw-configs/
+        [ -d /workspace/.opencode ] && mv /workspace/.opencode /tmp/openclaw-configs/
+        
+        # Clean workspace for clone
+        cd /workspace
+        rm -rf * 2>/dev/null || true
         
         # Clone workspace repo
         echo "Cloning $GIT_WORKSPACE_URL..."
-        git clone "$GIT_WORKSPACE_URL" .
+        git clone "$GIT_WORKSPACE_URL" . 2>/dev/null || {
+            # Clone failed (repo might be empty or not exist)
+            echo "Warning: Could not clone workspace repo, using existing files"
+            # Restore the config files
+            [ -d /tmp/openclaw-configs/configs ] && mv /tmp/openclaw-configs/configs /workspace/
+            [ -d /tmp/openclaw-configs/.opencode ] && mv /tmp/openclaw-configs/.opencode /workspace/
+        }
+        
+        # Restore OpenClaw config files (whether clone succeeded or not)
+        [ -d /tmp/openclaw-configs/configs ] && mv /tmp/openclaw-configs/configs /workspace/
+        [ -d /tmp/openclaw-configs/.opencode ] && mv /tmp/openclaw-configs/.opencode /workspace/
+        rm -rf /tmp/openclaw-configs 2>/dev/null || true
     fi
     
     # Configure git for workspace repo commits
