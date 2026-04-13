@@ -130,7 +130,11 @@ fi
 # Copy project files to OpenClaw's workspace at startup
 echo "Copying project files to OpenClaw workspace..."
 mkdir -p /home/node/.openclaw/workspace
-cp -r /workspace/* /home/node/.openclaw/workspace/ 2>/dev/null || true
+# Copy everything EXCEPT .git (don't copy git repo - agent uses /workspace for git)
+for item in /workspace/*; do
+    [ "$(basename "$item")" = ".git" ] && continue
+    cp -r "$item" /home/node/.openclaw/workspace/ 2>/dev/null || true
+done
 
 if [ -n "$DISCORD_BOT_TOKEN" ]; then
     echo "Configuring Discord channel..."
