@@ -31,40 +31,14 @@ if [ -n "$GIT_WORKSPACE_URL" ]; then
         git fetch origin
         git reset --hard origin/main || true
     else
-        # Workspace has files from Docker build (configs, .opencode)
-        # Move them to temp location
-        mkdir -p /tmp/openclaw-configs
-        [ -d /workspace/configs ] && mv /workspace/configs /tmp/openclaw-configs/
-        [ -d /workspace/.opencode ] && mv /workspace/.opencode /tmp/openclaw-configs/
-        
-        # Clean workspace for clone
+        # Clean workspace for fresh clone
         cd /workspace
         rm -rf * .git 2>/dev/null || true
         
-# Clone workspace repo with auth
+        # Clone workspace repo with auth
         echo "Cloning $GIT_WORKSPACE_URL..."
-        CLONE_SUCCESS=false
         if [ -n "$GIT_WORKSPACE_TOKEN" ]; then
-            # Clone with token for auth
-            git clone "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@$(echo $GIT_WORKSPACE_URL | sed 's|https://||')" . 2>/dev/null && CLONE_SUCCESS=true
-        else
-            git clone "$GIT_WORKSPACE_URL" . 2>/dev/null && CLONE_SUCCESS=true
-        fi
-        
-        if [ "$CLONE_SUCCESS" = "false" ]; then
-            echo "Warning: Could not clone workspace repo (may be empty), using existing files"
-        fi
-        
-        # Restore OpenClaw config files if clone failed or repo is empty
-        [ -d /tmp/openclaw-configs/configs ] && mv /tmp/openclaw-configs/configs /workspace/
-        [ -d /tmp/openclaw-configs/.opencode ] && mv /tmp/openclaw-configs/.opencode /workspace/
-        rm -rf /tmp/openclaw-configs 2>/dev/null || true
-        
-        # If workspace is empty after clone, restore agent repo files
-        if [ "$(ls -A /workspace 2>/dev/null | wc -l)" -lt "2" ]; then
-            echo "Warning: Workspace repo appears empty, restoring from agent repo"
-            [ -d /workspace/configs ] || mv /tmp/openclaw-configs/configs /workspace/ 2>/dev/null || true
-            [ -d /workspace/.opencode ] || mv /tmp/openclaw-configs/.opencode /workspace/ 2>/dev/null || true
+            git clone "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@$(echo $GIT_WORKSPACE_URL | sed 's|https://||')" . 2>/dev/null
         fi
     fi
     
