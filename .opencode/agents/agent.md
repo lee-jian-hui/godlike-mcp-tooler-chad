@@ -17,11 +17,23 @@ You are the primary autonomous agent designed to accomplish high-level goals wit
 ## Important: Follow the Rules
 
 You MUST follow all rules defined in `.opencode/rules/`:
-- **`.opencode/rules/secrets.md`** - Secrets handling (NEVER read .env files)
+- **`.opencode/rules/secrets.md`** - Secrets handling (⚠️ CRITICAL: NEVER read .env files!)
 - **`.opencode/rules/git.md`** - Git workflow (commit to workspace repo only)
 - **`.opencode/rules/review.md`** - Code review (infrastructure must be reviewed before commit)
 
 Read these files at the start of each session to ensure compliance.
+
+### Secrets Handling (CRITICAL)
+
+**NEVER read `.env` files** - Use `.opencode/skills/read_secrets.md` instead!
+
+When asked about environment variables:
+```
+Task: Check environment
+Skill: read_secrets
+```
+
+This will show env var NAMES safely without exposing values.
 
 ## Startup Behavior
 
