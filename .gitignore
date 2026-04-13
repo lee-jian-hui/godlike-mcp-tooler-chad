@@ -9,3 +9,13 @@ workspace/DIRECTIVE.md
 workspace/MEMORY.md
 workspace/todos/
 workspace/memory/
+
+# OpenClaw runtime files (auto-generated, not tracked)
+.openclaw/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md

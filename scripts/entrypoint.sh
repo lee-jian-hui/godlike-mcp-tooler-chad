@@ -57,18 +57,18 @@ if [ -n "$GIT_WORKSPACE_URL" ]; then
         rm -rf /tmp/openclaw-configs 2>/dev/null || true
     fi
     
-    # Configure git for workspace repo commits
-    if [ -n "$GIT_WORKSPACE_USERNAME" ] && [ -n "$GIT_WORKSPACE_TOKEN" ]; then
+    # Configure git for workspace repo commits (only if git directory exists)
+    if [ -d "/workspace/.git" ] && [ -n "$GIT_WORKSPACE_USERNAME" ] && [ -n "$GIT_WORKSPACE_TOKEN" ]; then
         echo "Configuring git for workspace repo..."
         git config user.name "$GIT_WORKSPACE_USERNAME"
         git config user.email "${GIT_WORKSPACE_EMAIL:-github-actions@users.noreply.github.com}"
         
         # Configure git to use token for authentication
         git remote set-url origin "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@$(echo $GIT_WORKSPACE_URL | sed 's|https://||')"
+        
+        # Set git to auto-commit
+        git config --global push.default simple
     fi
-    
-    # Set git to auto-commit
-    git config --global push.default simple
 fi
 
 # ============================================================================
@@ -113,10 +113,13 @@ if [ -f "/workspace/configs/openclaw.json" ]; then
     cp /workspace/configs/openclaw.json /home/node/.openclaw/openclaw.json
 fi
 
-# Link workspace to OpenClaw's workspace directory
-echo "Linking workspace to OpenClaw..."
-rm -f /home/node/.openclaw/workspace
-ln -sfn /workspace /home/node/.openclaw/workspace
+# Use OpenClaw's default workspace (no symlink)
+# OpenClaw will create its files in /home/node/.openclaw/workspace/
+
+# Copy project files to OpenClaw's workspace at startup
+echo "Copying project files to OpenClaw workspace..."
+mkdir -p /home/node/.openclaw/workspace
+cp -r /workspace/* /home/node/.openclaw/workspace/ 2>/dev/null || true
 
 if [ -n "$DISCORD_BOT_TOKEN" ]; then
     echo "Configuring Discord channel..."
@@ -136,6 +139,13 @@ if [ -n "$DISCORD_BOT_TOKEN" ]; then
             }
           }
         }
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "opencode/minimax-m2.5-free"
       }
     }
   },

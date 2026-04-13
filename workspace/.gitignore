@@ -37,3 +37,13 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+
+# OpenClaw runtime files (auto-generated, not tracked)
+.openclaw/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
