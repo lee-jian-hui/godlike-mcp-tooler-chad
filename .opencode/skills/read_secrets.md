@@ -17,7 +17,21 @@ Check what secrets/environment variables are available without exposing actual v
 
 ## How to Check Environment Variables
 
-### Show env var names only (masked):
+### Preferred: Use redact-secrets.sh script:
+```bash
+# In container:
+redact-secrets.sh
+```
+
+This outputs (redacted):
+```
+=== Environment Variables (Redacted) ===
+DISCORD_BOT_TOKEN=••••••••••••••••••••••••••••••••••••••
+OPENCODE_API_KEY=••••••••••••••••••••••••••••••••••••••
+GIT_WORKSPACE_TOKEN=••••••••••••••••••••••••••••••••••••••OrU
+```
+
+### Alternative: Show env var names only (masked):
 ```bash
 # In container:
 env | grep -E "^[A-Z_]+=" | cut -d= -f1 | sort

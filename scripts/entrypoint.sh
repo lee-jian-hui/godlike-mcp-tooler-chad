@@ -41,20 +41,31 @@ if [ -n "$GIT_WORKSPACE_URL" ]; then
         cd /workspace
         rm -rf * 2>/dev/null || true
         
-        # Clone workspace repo
+# Clone workspace repo with auth
         echo "Cloning $GIT_WORKSPACE_URL..."
-        git clone "$GIT_WORKSPACE_URL" . 2>/dev/null || {
-            # Clone failed (repo might be empty or not exist)
-            echo "Warning: Could not clone workspace repo, using existing files"
-            # Restore the config files
-            [ -d /tmp/openclaw-configs/configs ] && mv /tmp/openclaw-configs/configs /workspace/
-            [ -d /tmp/openclaw-configs/.opencode ] && mv /tmp/openclaw-configs/.opencode /workspace/
-        }
+        CLONE_SUCCESS=false
+        if [ -n "$GIT_WORKSPACE_TOKEN" ]; then
+            # Clone with token for auth
+            git clone "https://${GIT_WORKSPACE_USERNAME}:${GIT_WORKSPACE_TOKEN}@$(echo $GIT_WORKSPACE_URL | sed 's|https://||')" . 2>/dev/null && CLONE_SUCCESS=true
+        else
+            git clone "$GIT_WORKSPACE_URL" . 2>/dev/null && CLONE_SUCCESS=true
+        fi
         
-        # Restore OpenClaw config files (whether clone succeeded or not)
+        if [ "$CLONE_SUCCESS" = "false" ]; then
+            echo "Warning: Could not clone workspace repo (may be empty), using existing files"
+        fi
+        
+        # Restore OpenClaw config files if clone failed or repo is empty
         [ -d /tmp/openclaw-configs/configs ] && mv /tmp/openclaw-configs/configs /workspace/
         [ -d /tmp/openclaw-configs/.opencode ] && mv /tmp/openclaw-configs/.opencode /workspace/
         rm -rf /tmp/openclaw-configs 2>/dev/null || true
+        
+        # If workspace is empty after clone, restore agent repo files
+        if [ "$(ls -A /workspace 2>/dev/null | wc -l)" -lt "2" ]; then
+            echo "Warning: Workspace repo appears empty, restoring from agent repo"
+            [ -d /workspace/configs ] || mv /tmp/openclaw-configs/configs /workspace/ 2>/dev/null || true
+            [ -d /workspace/.opencode ] || mv /tmp/openclaw-configs/.opencode /workspace/ 2>/dev/null || true
+        fi
     fi
     
     # Configure git for workspace repo commits (only if git directory exists)

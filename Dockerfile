@@ -25,6 +25,10 @@ WORKDIR /workspace
 COPY --chown=node:node scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy secret redaction script
+COPY --chown=node:node scripts/redact-secrets.sh /usr/local/bin/redact-secrets.sh
+RUN chmod +x /usr/local/bin/redact-secrets.sh
+
 # Copy OpenCode configuration
 COPY --chown=node:node .opencode/ /workspace/.opencode/
 
