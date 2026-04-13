@@ -111,7 +111,14 @@ if [ -f "/workspace/configs/openclaw.json" ]; then
     echo "Using OpenClaw config from workspace..."
     mkdir -p /home/node/.openclaw
     cp /workspace/configs/openclaw.json /home/node/.openclaw/openclaw.json
-elif [ -n "$DISCORD_BOT_TOKEN" ]; then
+fi
+
+# Link workspace to OpenClaw's workspace directory
+echo "Linking workspace to OpenClaw..."
+rm -f /home/node/.openclaw/workspace
+ln -sfn /workspace /home/node/.openclaw/workspace
+
+if [ -n "$DISCORD_BOT_TOKEN" ]; then
     echo "Configuring Discord channel..."
     mkdir -p /home/node/.openclaw
     cat > /home/node/.openclaw/openclaw.json << EOF
