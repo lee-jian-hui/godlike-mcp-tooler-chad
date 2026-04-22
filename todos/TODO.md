@@ -24,13 +24,21 @@ podman ps
 
 ---
 
-## Phase 2: Podman Integration (In Progress)
+## Phase 2: Podman Integration (Limitation Found)
 
 | Task | Status | Details |
 |------|--------|---------|
 | 2.1 Install Podman in container | ✅ DONE | Added `RUN apt-get install -y podman` to Dockerfile |
-| 2.2 Test Podman runs inside container | 🔲 PENDING | Need to verify with: `podman exec openclaw podman run -d nginx` |
-| 2.3 Verify rootless Podman works | 🔲 PENDING | Need to document security benefits |
+| 2.2 Test Podman runs inside container | ❌ NOT SUPPORTED | Nested Podman requires namespace isolation (user namespaces) which needs elevated privileges. Podman inside container cannot spawn new containers without --privileged mode. |
+| 2.3 Verify rootless Podman works | ❌ NOT APPLICABLE | Rootless Podman runs inside the Podman VM - not accessible from container network |
+
+**Finding:** Podman is installed in the container (step 2.1 complete), but nested containerization (spawning containers inside the container) requires special permissions that are not available by default for security reasons.
+
+**Alternative approaches (if needed):**
+1. Use host Podman socket via volume mount (requires matching UID/GID)
+2. Use SSH to connect to host Podman VM (complex, not recommended)
+3. Run infra services directly in main container (not nested in Podman)
+4. Use Kubernetes/Docker-in-Docker (requires privileged mode)
 
 ---
 
