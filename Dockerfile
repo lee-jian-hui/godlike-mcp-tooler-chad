@@ -39,6 +39,15 @@ COPY --chown=node:node configs/ /workspace/configs/
 # OpenCode is bundled with OpenClaw's ACP
 RUN npm install -g openclaw
 
+# Pre-install runtime dependencies for plugins that need them (as root)
+# These plugins have "bundle": { "stageRuntimeDependencies": true }
+# and need to install their npm deps at runtime, but can't write to global node_modules as non-root
+RUN npm install -g @openclaw/discord @openclaw/browser @openclaw/amazon-bedrock @openclaw/amazon-bedrock-mantle @openclaw/microsoft @openclaw/acpx @openclaw/validation 2>/dev/null || true
+
+# Allow node user to write to global node_modules for plugin runtime dependency installation
+# This is needed because some plugins try to install additional deps at runtime
+RUN chown -R node:node /usr/local/lib/node_modules /usr/local/bin
+
 # Switch to non-root user after npm install
 USER node
 
